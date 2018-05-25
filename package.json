@@ -1,6 +1,7 @@
 {
-  "name": "tutorialtoken",
-  "version": "1.0.0",
+  "name": "Pooled.io",
+  "version": "0.0.0",
+  "private": true,
   "description": "",
   "main": "truffle.js",
   "directories": {
@@ -13,6 +14,10 @@
   "author": "",
   "license": "ISC",
   "devDependencies": {
-    "lite-server": "^2.3.0"
+    "lite-server": "^2.3.0",
+    "eslint": "^4.19.1",
+    "eslint-config-airbnb-base": "^12.1.0",
+    "eslint-plugin-import": "^2.12.0",
+    "openzeppelin-solidity": "^1.9.0"
   }
 }
