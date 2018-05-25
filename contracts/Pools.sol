@@ -11,9 +11,10 @@ contract Pools is Ownable {
 
 	}
 
-	function deployPool(string _name, string _author) {
+	function deployPool(string _name, string _author) public returns (address) {
 		address newPool = new Pool(_name, _author);
 		owners[msg.sender].push(newPool);
+		return newPool;
 	}
 
 	function getPools(address addr) public view returns(address[]) {
