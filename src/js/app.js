@@ -1,6 +1,9 @@
 /* eslint-disable */
 
 function addPoolsToDOM(ob, poolsDiv) {
+  //delete old list 
+  poolsDiv.empty();
+
   // start a virtual unordered list (list with bullets - no numbers)
   const ul = $('<ul>');
 
@@ -18,6 +21,35 @@ function addPoolsToDOM(ob, poolsDiv) {
 
   // we add the virtual unordered list onto the html
   poolsDiv.append(ul);
+}//showPoolDiv
+
+function addPoolToDOM(ob, poolDiv) {
+  //delete old list 
+  poolDiv.empty();
+
+  // start a virtual unordered list (list with bullets - no numbers)
+  const ul = $('<ul>');
+
+  let li;
+  let term;
+
+  let strings = [];
+  var dateStartOfCrowdSale = new Date(ob[0].toNumber()*1000);
+  var name = ob[1];
+  var author = ob[2];
+  strings.push(dateStartOfCrowdSale, name, author)
+
+  for (let i = 0; i < strings.length; i++) {
+    li = $('<li>');
+    term = $('<span>').html(`<strong>${strings[i]}</strong>`).addClass('right-margin-5');
+
+    li.append(term);
+
+    ul.append(li);
+  }
+
+  // we add the virtual unordered list onto the html
+  poolDiv.append(ul);
 }
 
 App = {
@@ -51,16 +83,26 @@ App = {
       // Set the provider for our contract.
       App.contracts.Pools.setProvider(App.web3Provider);
 
-      // Use our contract to retieve and mark the adopted pets.
-      return App.getAccounts();
+      $.getJSON('Pool.json', function(data) {
+        // Get the necessary contract artifact file and instantiate it with truffle-contract.
+        var PoolArtifact = data;
+        App.contracts.Pool = TruffleContract(PoolArtifact);
+
+        // Set the provider for our contract.
+        App.contracts.Pool.setProvider(App.web3Provider);
+
+        //get the balance of erc20 tokens the current user has and put that on the page
+        return App.getAccounts();
+      });
     });
 
-    return App.bindEvents();
+    //return App.bindEvents();
   },
 
   bindEvents() {
     $(document).on('click', '#createPoolButton', App.createPool);
     $(document).on('click', '#showPoolButton', App.showPool);
+    $(document).on('click', '#testButton', App.showPool);
   },
 
   createPool(event) {
@@ -87,6 +129,13 @@ App = {
       }).then((result) => {
         alert('Deploy Successful!');
         console.log(result);
+
+        return poolsInstance.poolCreated().watch((err,res) => {
+          if (err) { console.log(err) }
+          console.log(`pool created ${res.args.pool} from ${res.args.owner}`);
+          App.getPools();
+        });
+
         return App.getPools();
       }).catch((err) => {
         console.log(err.message);
@@ -95,6 +144,8 @@ App = {
   },
 
   getAccounts() {
+    App.bindEvents();
+
     console.log('Getting Accounts...');
 
     web3.eth.getAccounts((error, accounts) => {
@@ -134,19 +185,44 @@ App = {
   },
 
   showPool() {
-    console.log('Getting Pools...');
     let poolInstance;
+    const poolAddress = $('#showPoolAddress').val();
+    console.log(`Show Pool ${poolAddress}`);
 
     web3.eth.getAccounts((error, accounts) => {
       if (error) {
         console.log(error);
       }
+      console.log('kikoo1');
 
       const account = accounts[0];
 
+      App.contracts.Pool.at(poolAddress).then((instance) => {
+        console.log(instance);
+
+        console.log('kikoo 2');
+
+        poolInstance = instance;
+
+        var promises = [];
+
+        //the first element pushed into promises
+          //is the address of the Sale contract to the balanceOf function in the TutorialToken contract
+        promises.push(poolInstance.deployed_time(), poolInstance.name(), poolInstance.author());
+        return Promise.all(promises);
+      }).then(function(result){
+        console.log(result);
+        addPoolToDOM(result, $('#showPoolDiv'));
+      }).catch((err) => {
+        console.log(err.message);
+      });
       // need to show detail of a pool using truffle-connect
     });
   },
+
+  test() {
+
+  }
 
 };
 
